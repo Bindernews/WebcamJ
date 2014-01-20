@@ -7,29 +7,26 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import com.github.sarxos.webcam.ds.ipcam.IpCamDeviceRegistry;
 import com.github.sarxos.webcam.ds.ipcam.IpCamMode;
 
-import java.awt.Insets;
-import java.awt.Point;
-
-public class OpenURLDialog extends JDialog implements ActionListener {
+public class OpenURLDialog extends JDialog implements ActionListener, DocumentListener {
 	private static final long serialVersionUID = 1L;
 	
 	private final JPanel contentPanel = new JPanel();
-	private JTextField textField;	
+	private JTextField textField;
 	private JTextField statusBar;
 	
 	public OpenURLDialog(JFrame parent) {
@@ -48,6 +45,7 @@ public class OpenURLDialog extends JDialog implements ActionListener {
 		contentPanel.setLayout(new BorderLayout(0, 2));
 		{
 			textField = new JTextField();
+			textField.getDocument().addDocumentListener(this);
 			textField.setAlignmentY(Component.TOP_ALIGNMENT);
 			contentPanel.add(textField);
 			textField.setColumns(30);
@@ -80,25 +78,53 @@ public class OpenURLDialog extends JDialog implements ActionListener {
 		pack();
 	}
 	
+	protected URL checkURL() {
+		try {
+			// make sure the url is valid
+			URL theurl = new URL(textField.getText());
+			statusBar.setForeground(Color.GREEN);
+			statusBar.setText("URL Ok");
+			return theurl;
+		} catch (MalformedURLException e) {
+			statusBar.setForeground(Color.RED);
+			statusBar.setText("Bad URL");
+			return null;
+		}
+	}
+	
 	public void actionPerformed(ActionEvent e) {
 		if ("OK".equals(e.getActionCommand())) {
 			try {
-				// make sure the url is valid
-				URL theurl = new URL(textField.getText());
-				// check that we can actually connect
-				InputStream stream = theurl.openStream();
-				stream.close();
-				// create the webcam device
-				IpCamDeviceRegistry.register(textField.getText(), theurl, IpCamMode.PULL);
-				// destroy the window
-				dispose();
-			} catch (MalformedURLException ex) {
-				statusBar.setText("Invalid URL");
+				URL theurl = checkURL(); 
+				if (theurl != null) {
+					// check that we can actually connect
+					theurl.openConnection().connect();
+					// create the webcam device
+					IpCamDeviceRegistry.register(textField.getText(), theurl, IpCamMode.PULL);
+					// destroy the window
+					dispose();
+				}
 			} catch (IOException ex) {
+				statusBar.setForeground(Color.RED);
 				statusBar.setText("IOException: " + ex.getMessage());
 			}
 		} else if ("Cancel".equals(e.getActionCommand())) {
 			dispose();
 		}
+	}
+
+	@Override
+	public void changedUpdate(DocumentEvent e) {
+		// unimplemented
+	}
+
+	@Override
+	public void insertUpdate(DocumentEvent e) {
+		checkURL();
+	}
+
+	@Override
+	public void removeUpdate(DocumentEvent e) {
+		checkURL();
 	}
 }
