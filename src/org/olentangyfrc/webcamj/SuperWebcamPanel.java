@@ -1,5 +1,6 @@
 package org.olentangyfrc.webcamj;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 
 import javax.swing.JPanel;
@@ -24,10 +25,15 @@ public class SuperWebcamPanel extends JPanel {
 	
 	
 	public SuperWebcamPanel() {
-		setWebcam(null);
+		initialize(null);
 	}
 	
 	public SuperWebcamPanel(Webcam cam) {
+		initialize(cam);
+	}
+	
+	private void initialize(Webcam cam) {
+		setLayout(new BorderLayout());
 		setWebcam(cam);
 	}
 	
@@ -36,7 +42,6 @@ public class SuperWebcamPanel extends JPanel {
 		if (thecam == webcam) {
 			return;
 		}
-		
 		if (thecam == null) {
 			if (camPanel != null)
 				camPanel.stop();
@@ -62,7 +67,9 @@ public class SuperWebcamPanel extends JPanel {
 			// now we create the new panel and go from there
 			camPanel = new WebcamPanel(webcam);
 			camPanel.setFillArea(true);
-			add(camPanel);
+			add(camPanel, BorderLayout.CENTER);
+
+			repaint();
 		}
 	}
 	

@@ -100,7 +100,7 @@ public class OpenURLDialog extends JDialog implements ActionListener, DocumentLi
 					// check that we can actually connect
 					theurl.openConnection().connect();
 					// create the webcam device
-					IpCamDeviceRegistry.register(textField.getText(), theurl, IpCamMode.PULL);
+					IpCamDeviceRegistry.register(textField.getText(), theurl, IpCamMode.PUSH);
 					// destroy the window
 					dispose();
 				}

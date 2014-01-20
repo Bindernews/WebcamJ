@@ -34,7 +34,7 @@ public class WebcamJ extends JFrame implements WebcamDiscoveryListener {
 		wcd.add(new IpCamDriver());
 		Webcam.setDriver(wcd);
 	}
-
+	
 	private JPanel contentPane;
 	private SuperWebcamPanel camera;
 	private JMenuBar menubar;
@@ -128,8 +128,10 @@ public class WebcamJ extends JFrame implements WebcamDiscoveryListener {
 
 	protected MouseListener aMouseListener = new MouseAdapter() {
 		@Override
-		public void mouseClicked(MouseEvent e) {
-			System.out.println("Mouse click: " + e.getX() + "," + e.getY());
+		public void mousePressed(MouseEvent e) {
+			int mx = e.getX() - (camera.getWidth() / 2);
+			int my = e.getY() - (camera.getHeight() / 2);
+			System.out.println("Mouse click relative to center: " + mx + "," + my);
 		}
 	};
 
