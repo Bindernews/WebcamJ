@@ -20,6 +20,7 @@ import com.github.sarxos.webcam.Webcam;
 import com.github.sarxos.webcam.WebcamCompositeDriver;
 import com.github.sarxos.webcam.WebcamDiscoveryEvent;
 import com.github.sarxos.webcam.WebcamDiscoveryListener;
+import com.github.sarxos.webcam.WebcamPanel;
 import com.github.sarxos.webcam.ds.buildin.WebcamDefaultDriver;
 import com.github.sarxos.webcam.ds.ipcam.IpCamDriver;
 
@@ -44,6 +45,9 @@ public class WebcamJ extends JFrame implements WebcamDiscoveryListener {
 	// this is for things such as ActionListeners which need to reference the
 	// containing class.
 	private WebcamJ self = this;
+	
+	//These variables used to send normalized mouse clicks to Aimer constructor
+	float mx, my;
 
 	public WebcamJ() {
 		addWindowListener(new WindowAdapter() {
@@ -129,11 +133,17 @@ public class WebcamJ extends JFrame implements WebcamDiscoveryListener {
 	protected MouseListener aMouseListener = new MouseAdapter() {
 		@Override
 		public void mousePressed(MouseEvent e) {
-			int mx = e.getX() - (camera.getWidth() / 2);
-			int my = e.getY() - (camera.getHeight() / 2);
-			System.out.println("Mouse click relative to center: " + mx + "," + my);
+		    //Gets mouse clicks relative to center of camera 
+			mx = e.getX() - (camera.getWidth() / 2);
+			my = e.getY() - (camera.getHeight() / 2);
+			//Makes mouse clicks normalized coordinates 
+			mx=(float)mx/(camera.getWidth()/2); 
+			my=(float)my/(camera.getHeight()/2);
+			System.out.println("Normalized mouse clicks relative to center: " + mx + "," + my);
 		}
 	};
+	
+	Aimer aimer = new Aimer(mx,my);
 
 	public static void main(String[] args) {
 		final WebcamJ window = new WebcamJ();
