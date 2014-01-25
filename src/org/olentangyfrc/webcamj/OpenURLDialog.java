@@ -36,7 +36,7 @@ public class OpenURLDialog extends JDialog implements ActionListener, DocumentLi
 
 	private void initialize() {
 		setTitle("Enter URL");
-		setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
+		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setResizable(false);
 		setBounds(100, 100, 366, 250);
 		getContentPane().setLayout(new BorderLayout());

@@ -37,8 +37,8 @@ public class CameraManager {
 		// create the webcam device
 		IpCamDevice ipcd = new IpCamDevice(url.toString(), url, IpCamMode.PUSH);
 		ipcd.setFailOnError(true);
-		// ipcd.client.getParams().setIntParameter("http.socket.timeout", 100);
-		ipcd.open();
+		ipcd.client.getParams().setIntParameter("http.socket.timeout", 100);
+		ipcd.getImage();
 		IpCamDeviceRegistry.register(ipcd);
 		return findWebcam(ipcd);
 	}
