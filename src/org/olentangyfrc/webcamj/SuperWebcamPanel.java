@@ -43,16 +43,11 @@ public class SuperWebcamPanel extends JPanel {
 			return;
 		}
 		if (thecam == null) {
-			if (camPanel != null)
-				camPanel.stop();
+			safeStopPanel(false);
 			webcam = null;
 		} else {
 			// remove the old camPanel
-			if (camPanel != null) {
-				camPanel.stop();
-				remove(camPanel);
-				camPanel = null;
-			}
+			safeStopPanel(true);
 			webcam = thecam;
 			// We want to make sure the webcam is at max resolution. We also
 			// don't want to change the resolution if we don't have to.
@@ -70,6 +65,25 @@ public class SuperWebcamPanel extends JPanel {
 			add(camPanel, BorderLayout.CENTER);
 
 			repaint();
+		}
+	}
+	
+	/**
+	 * Stops the webcam panel but does safety checks first.
+	 */
+	private void safeStopPanel(boolean removePanel) {
+		if (camPanel != null) {
+			final WebcamPanel thepanel = camPanel;
+			Thread t = new Thread() {
+				public void run() {
+					thepanel.stop();
+				}
+			};
+			t.start();
+			if (removePanel) {
+				remove(camPanel);
+				camPanel = null;
+			}
 		}
 	}
 	

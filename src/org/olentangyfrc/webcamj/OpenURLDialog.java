@@ -6,20 +6,18 @@ import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import com.github.sarxos.webcam.ds.ipcam.IpCamDeviceRegistry;
+import com.github.sarxos.webcam.Webcam;
 import com.github.sarxos.webcam.ds.ipcam.IpCamMode;
 
 public class OpenURLDialog extends JDialog implements ActionListener, DocumentListener {
@@ -28,15 +26,17 @@ public class OpenURLDialog extends JDialog implements ActionListener, DocumentLi
 	private final JPanel contentPanel = new JPanel();
 	private JTextField textField;
 	private JTextField statusBar;
+	private WebcamJ parent;
 	
-	public OpenURLDialog(JFrame parent) {
+	public OpenURLDialog(WebcamJ parent) {
 		super(parent);
+		this.parent = parent;
 		initialize();
 	}
 
 	private void initialize() {
 		setTitle("Enter URL");
-		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
 		setResizable(false);
 		setBounds(100, 100, 366, 250);
 		getContentPane().setLayout(new BorderLayout());
@@ -97,16 +97,14 @@ public class OpenURLDialog extends JDialog implements ActionListener, DocumentLi
 			try {
 				URL theurl = checkURL(); 
 				if (theurl != null) {
-					// check that we can actually connect
-					theurl.openConnection().connect();
-					// create the webcam device
-					IpCamDeviceRegistry.register(textField.getText(), theurl, IpCamMode.PUSH);
-					// destroy the window
+					Webcam cam = CameraManager.createIPCamera(theurl, IpCamMode.PUSH);
+					parent.getCameraPanel().setWebcam(cam);
+					// destroy the window if no exception is thrown
 					dispose();
 				}
-			} catch (IOException ex) {
+			} catch (Exception ex) {
 				statusBar.setForeground(Color.RED);
-				statusBar.setText("IOException: " + ex.getMessage());
+				statusBar.setText(ex.getClass().getSimpleName() + ": " + ex.getMessage());
 			}
 		} else if ("Cancel".equals(e.getActionCommand())) {
 			dispose();

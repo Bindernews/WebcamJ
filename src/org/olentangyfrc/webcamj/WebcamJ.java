@@ -3,11 +3,9 @@ package org.olentangyfrc.webcamj;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -17,44 +15,23 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import com.github.sarxos.webcam.Webcam;
-import com.github.sarxos.webcam.WebcamCompositeDriver;
 import com.github.sarxos.webcam.WebcamDiscoveryEvent;
 import com.github.sarxos.webcam.WebcamDiscoveryListener;
-import com.github.sarxos.webcam.WebcamPanel;
-import com.github.sarxos.webcam.ds.buildin.WebcamDefaultDriver;
-import com.github.sarxos.webcam.ds.ipcam.IpCamDriver;
 
 public class WebcamJ extends JFrame implements WebcamDiscoveryListener {
 
 	private static final long serialVersionUID = -4281858780174576605L;
 
-	static {
-		// allows us to use both built-in webcams and IP cameras
-		WebcamCompositeDriver wcd = new WebcamCompositeDriver();
-		wcd.add(new WebcamDefaultDriver());
-		wcd.add(new IpCamDriver());
-		Webcam.setDriver(wcd);
-	}
-	
 	private JPanel contentPane;
 	private SuperWebcamPanel camera;
 	private JMenuBar menubar;
 	private JMenu webcamMenu;
 	private JMenu optionsMenu;
-
-	// this is for things such as ActionListeners which need to reference the
-	// containing class.
-	private WebcamJ self = this;
 	
-	//These variables used to send normalized mouse clicks to Aimer constructor
-	float mx, my;
+	private Aimer aimer;
 
 	public WebcamJ() {
-		addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent e) {
-				camera.setWebcam(null);
-			}
-		});
+		addWindowListener(myWindowListener);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 640, 480);
 		contentPane = new JPanel();
@@ -75,7 +52,7 @@ public class WebcamJ extends JFrame implements WebcamDiscoveryListener {
 			jmi.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					OpenURLDialog ourd = new OpenURLDialog(self);
+					OpenURLDialog ourd = new OpenURLDialog(WebcamJ.this);
 					ourd.setVisible(true);
 				}
 			});
@@ -87,7 +64,7 @@ public class WebcamJ extends JFrame implements WebcamDiscoveryListener {
 		}
 
 		camera = new SuperWebcamPanel(Webcam.getDefault());
-		camera.addMouseListener(aMouseListener);
+		aimer = new Aimer(camera);
 		contentPane.add(camera, BorderLayout.CENTER);
 		Webcam.addDiscoveryListener(this);
 
@@ -113,6 +90,17 @@ public class WebcamJ extends JFrame implements WebcamDiscoveryListener {
 			}
 		}
 	};
+	
+	protected final WindowAdapter myWindowListener = new WindowAdapter() {
+		public void windowClosing(WindowEvent e) {
+			camera.setWebcam(null);
+			try {
+				aimer.close();
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
+		}
+	};
 
 	@Override
 	public void webcamGone(WebcamDiscoveryEvent e) {
@@ -129,23 +117,13 @@ public class WebcamJ extends JFrame implements WebcamDiscoveryListener {
 	public void webcamFound(WebcamDiscoveryEvent e) {
 		createWebcamJMI(e.getWebcam());
 	}
-
-	protected MouseListener aMouseListener = new MouseAdapter() {
-		@Override
-		public void mousePressed(MouseEvent e) {
-		    //Gets mouse clicks relative to center of camera 
-			mx = e.getX() - (camera.getWidth() / 2);
-			my = e.getY() - (camera.getHeight() / 2);
-			//Makes mouse clicks normalized coordinates 
-			mx=(float)mx/(camera.getWidth()/2); 
-			my=(float)my/(camera.getHeight()/2);
-			System.out.println("Normalized mouse clicks relative to center: " + mx + "," + my);
-		}
-	};
 	
-	Aimer aimer = new Aimer(mx,my);
+	public SuperWebcamPanel getCameraPanel() {
+		return camera;
+	}
 
 	public static void main(String[] args) {
+		CameraManager.initialize();
 		final WebcamJ window = new WebcamJ();
 		window.setVisible(true);
 	}
